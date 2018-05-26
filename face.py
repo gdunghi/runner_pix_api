@@ -7,12 +7,15 @@ from objectview import Objectview
 from pymongo import MongoClient
 import numpy as np
 from datetime import datetime
-
+import threading
+from active_pool import ActivePool
+import logging
+from multiprocessing import Pool
 
 class Face:
     def __init__(self, app):
         self.storage = app.config["storage"]
-        self.db = app.db
+        # self.db = app.db
         self.faces = []  # storage all faces in caches array of face object
         self.known_encoding_faces = []  # faces data for recognition
         self.face_user_keys = {}
@@ -47,11 +50,14 @@ class Face:
         if isinstance(obj, set):
             return list(obj)
         raise TypeError
-
-    def load_all_train(self):
-        for filename in self.load_train_all():
-            face_image = face_recognition.load_image_file(
-                self.load_train_file_by_name(filename))
+    
+    def execute_train(self,filename, s, pool):
+      
+        print('Waiting to join the pool')
+        with s:
+            name = threading.current_thread().getName()
+            pool.makeActive(name)
+            face_image = face_recognition.load_image_file(self.load_train_file_by_name(filename))
             if (len(face_image) > 0):
                 face_image_encoding = face_recognition.face_encodings(
                     face_image)
@@ -59,10 +65,42 @@ class Face:
                     me = MyObject()
                     me.val = face_image_encoding[0].tolist()
                     self.get_db().faces.insert({"val": face_image_encoding[0].tolist(), "filename": filename})
+            pool.makeInactive(name)
+    
+    def execute_process_training(self,filename):
+        print("Processing... ",filename)
+        face_image = face_recognition.load_image_file(self.load_train_file_by_name(filename))
+        if (len(face_image) > 0):
+            print("start face_encodings ..",filename," ", datetime.now())
+            face_image_encoding = face_recognition.face_encodings(face_image)
+            print("end face_encodings ..",filename," ", datetime.now())
+            
+            if (len(face_image_encoding) > 0):
+                me = MyObject()
+                me.val = face_image_encoding[0].tolist()
+                print("start saving ..",filename," ", datetime.now())
+                self.get_db().faces.insert({"val": face_image_encoding[0].tolist(), "filename": filename})
+                print("start save ..",filename," ", datetime.now())
+            
+    def load_all_train(self):
+        # threads = []
+        # pool = ActivePool()
+        # s = threading.Semaphore(6)
+        # for filename in self.load_train_all():
+        #     t = threading.Thread(name='execute_train_'+filename, target=self.execute_train, args=(filename, s, pool,))
+        #     threads.append(t)
+        #     t.start()
+        
+        # job = []
+        # pool = ActivePool()
+        # s = threading.Semaphore(6)
 
-                    self.known_encoding_faces.append(face_image_encoding[0])
-
+        p = Pool(4)
+        p.map(self.execute_process_training, self.load_train_all())
+           
+    
     def train_image(self, image_path, filename):
+       
         face_image = face_recognition.load_image_file(image_path+"/"+filename)
         if (len(face_image) > 0):
             face_image_encoding = face_recognition.face_encodings(face_image)
@@ -70,55 +108,6 @@ class Face:
                 me = MyObject()
                 me.val = face_image_encoding[0].tolist()
                 return self.get_db().faces.insert({"val": face_image_encoding[0].tolist(), "filename": filename})
-    
-
-    def load_all(self):
-
-        results = self.db.select(
-            'SELECT faces.id, faces.user_id, faces.filename, faces.created FROM faces')
-
-        for row in results:
-
-            user_id = row[1]
-            filename = row[2]
-
-            face = {
-                "id": row[0],
-                "user_id": user_id,
-                "filename": filename,
-                "created": row[3]
-            }
-            self.faces.append(face)
-
-            face_image = face_recognition.load_image_file(
-                self.load_train_file_by_name(filename))
-            face_image_encoding = face_recognition.face_encodings(face_image)[
-                0]
-            index_key = len(self.known_encoding_faces)
-            self.known_encoding_faces.append(face_image_encoding)
-            index_key_string = str(index_key)
-            self.face_user_keys['{0}'.format(index_key_string)] = user_id
-
-    def recognize(self, unknown_filename):
-        unknown_image = face_recognition.load_image_file(self.load_unknown_file_by_name(unknown_filename))
-        unknown_encoding_image = face_recognition.face_encodings(unknown_image)[0]
-
-        results = face_recognition.compare_faces(self.known_encoding_faces, unknown_encoding_image)
-
-        print("results", results)
-
-        index_key = 0
-        for matched in results:
-
-            if matched:
-                # so we found this user with index key and find him
-                user_id = self.load_user_by_index_key(index_key)
-
-                return user_id
-
-            index_key = index_key + 1
-
-        return None
 
     def recognize_from_db(self, unknown_filename):
         print("start load img", datetime.now())
