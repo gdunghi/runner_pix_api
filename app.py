@@ -79,7 +79,6 @@ def train():
         print ("Face image is required")
         return error_handle("Face image is required.")
     else:
-
         print("File request", request.files)
         file = request.files['file']
 
@@ -100,34 +99,37 @@ def train():
             trained_storage = path.join(app.config['storage'], 'trained')
             file.save(path.join(trained_storage, filename))
             # let start save file to our storage
+            result = app.face.train_image(trained_storage,filename)
+            print(result)
+            return success_handle(json.dumps(result))
 
             # save to our sqlite database.db
-            created = int(time.time())
-            user_id = app.db.insert('INSERT INTO users(name, created) values(?,?)', [name, created])
+            # created = int(time.time())
+            # user_id = app.db.insert('INSERT INTO users(name, created) values(?,?)', [name, created])
 
-            if user_id:
+            # if user_id:
 
-                print("User saved in data", name, user_id)
-                # user has been save with user_id and now we need save faces table as well
+            #     print("User saved in data", name, user_id)
+            #     # user has been save with user_id and now we need save faces table as well
 
-                face_id = app.db.insert('INSERT INTO faces(user_id, filename, created) values(?,?,?)',
-                                        [user_id, filename, created])
+            #     face_id = app.db.insert('INSERT INTO faces(user_id, filename, created) values(?,?,?)',
+            #                             [user_id, filename, created])
 
-                if face_id:
+            #     if face_id:
 
-                    print("cool face has been saved")
-                    face_data = {"id": face_id, "filename": filename, "created": created}
-                    return_output = json.dumps({"id": user_id, "name": name, "face": [face_data]})
-                    return success_handle(return_output)
-                else:
+            #         print("cool face has been saved")
+            #         face_data = {"id": face_id, "filename": filename, "created": created}
+            #         return_output = json.dumps({"id": user_id, "name": name, "face": [face_data]})
+            #         return success_handle(return_output)
+            #     else:
 
-                    print("An error saving face image.")
+            #         print("An error saving face image.")
 
-                    return error_handle("n error saving face image.")
+            #         return error_handle("n error saving face image.")
 
-            else:
-                print("Something happend")
-                return error_handle("An error inserting new user")
+            # else:
+            #     print("Something happend")
+            #     return error_handle("An error inserting new user")
 
         print("Request is contain image")
     return success_handle(output)
@@ -164,10 +166,14 @@ def recognize():
             file_path = path.join(unknown_storage, filename)
             file.save(file_path)
 
-            user_id = app.face.recognize_from_db(filename)
-            print("user_id",user_id)
-            if user_id:
-                return success_handle(json.dumps(user_id))
+            matched_images = app.face.recognize_from_db(filename)
+            print("matched_images",matched_images)
+            if len(matched_images) > 0:
+                images = []
+                for image in matched_images:
+                    images.append(image)
+
+                return success_handle(json.dumps(images))
             # if user_id:
             #     user = get_user_by_id(user_id)
             #     message = {"message": "Hey we found {0} matched with your face image".format(user["name"]),
