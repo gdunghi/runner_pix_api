@@ -33,7 +33,7 @@ class Face:
         return None
 
     def load_train_file_by_name(self, name):
-        trained_storage = path.join(self.storage, 'c')
+        trained_storage = path.join(self.storage, "trained")
         return path.join(trained_storage, name)
 
     def load_train_all(self):

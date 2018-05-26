@@ -169,11 +169,11 @@ def recognize():
             matched_images = app.face.recognize_from_db(filename)
             print("matched_images",matched_images)
             if len(matched_images) > 0:
-                images = []
-                for image in matched_images:
-                    images.append(image)
+                #images = []
+                # for image in matched_images:
+                #     images.append(image)
 
-                return success_handle(json.dumps(images))
+                return success_handle(json.dumps(matched_images))
             # if user_id:
             #     user = get_user_by_id(user_id)
             #     message = {"message": "Hey we found {0} matched with your face image".format(user["name"]),

@@ -1,65 +1,105 @@
-<!doctype html>
-<html>
+<!DOCTYPE html>
+<html lang="en">
+
 <head>
-    <title>Facial Recognition Service</title>
+    <meta charset="UTF-8">
+    <title>Find you pix</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='app.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     <script type="text/javascript" src="{{ url_for('static', filename='lodash.js') }}"></script>
     <script type="text/javascript" src="{{ url_for('static', filename='immutable.js') }}"></script>
     <script type="text/javascript" src="{{ url_for('static', filename='axios.js') }}"></script>
     <script type="text/javascript" src="{{ url_for('static', filename='jquery.js') }}"></script>
     <script type="text/javascript" src="{{ url_for('static', filename='app.js') }}"></script>
+
+    <style>
+        div.gallery {
+            margin: 5px;
+            border: 1px solid #ccc;
+            float: left;
+            width: 180px;
+        }
+
+        div.gallery:hover {
+            border: 1px solid #777;
+        }
+
+        div.gallery img {
+            width: 100%;
+            height: auto;
+        }
+
+        div.desc {
+            padding: 15px;
+            text-align: center;
+        }
+
+        .inp {
+            text-align: center;
+            margin: auto;
+        }
+
+        #val {
+            /* width: 664px; */
+            height: 48px;
+            position: absolute;
+            top: 0;
+            left: 0;
+            font-size: 13px;
+            line-height: 25px;
+            text-indent: 10px;
+            pointer-events: none;
+            background-color: white;
+            border-radius: 6px 0px 0px 6px;
+            box-shadow: 1px 2px 2px #ddd;
+        }
+
+        .results {
+            margin-top: 100px;
+        }
+    </style>
+
+    <script type="text/javascript">
+        // function onSearch() {
+        //     var btnSubmit = document.getElementById("bthSubmit");
+
+        // }
+    </script>
+
 </head>
+
 <body>
-
-
-<div class="container">
-    <h1>Facial Recognition</h1>
-
-    <ul class="tabs">
-        <li data-section="train-content">Train it</li>
-        <li data-section="recognize-content">Recognize</li>
-    </ul>
-    <div id="train-content">
-        <h2>Train it</h2>
-        <form method="post" id="train">
-            <div class="message">
-
-            </div>
-            <p class="description">Pre-training our service. Upload an image contain the face and give it full name for
-                recognize later</p>
-            <div class="form-item">
-                <label for="input-file">Face image</label>
-                <input type="file" name="file" id="input-file" accept="image/*"/>
-            </div>
-            <div class="form-item">
-                <label>Full name</label>
-                <input id="name-field" name="name" value="" type="text" placeholder="Full name"/>
-            </div>
-            <div class="form-action">
-                <button type="submit">Begin train it</button>
-            </div>
-        </form>
-    </div>
-
-    <div id="recognize-content">
-        <h2>Recognize</h2>
-
+    <nav class="navigation">
+        <div class="container">
+            <span class="title">
+                <i class="fa fa-home"></i> Find your pix
+            </span>
+            <!-- <span class="search-control" onclick="searchbox(1)">
+                Search
+                <a style="font-family:fontawesome;"></a>
+            </span> -->
+        </div>
+    </nav>
+    <div class="container">
         <form method="post" id="recognize">
-            <div class="message">
+            <div class="search-box" id="SBox">
+                <input type="file" name="file" id="recognize-input-file" accept="image/*" placeholder="ค้นหา..." />
+                <span id='val'></span>
+                <div class="also search-link" onclick="onSearch()" id="btnSearch"></div>
+                <a class="fa fa-cog also setting"></a>
 
-            </div>
-            <p class="description">Upload an image and i will tell to you who is is the picture.</p>
-            <div class="form-item">
-                <label for="input-file">Image</label>
-                <input type="file" name="file" id="recognize-input-file" accept="image/*"/>
-            </div>
-
-            <div class="form-action">
-                <button type="submit">Recognize it</button>
             </div>
         </form>
     </div>
 
-</div>
+    <div class="results" id="results">
+
+    </div>
+
+    <div id="loading" style="width: 100px;margin: auto;" align="center">
+        <p><img src="static/images/loading.gif" style="height: 100%;width: 100%"/></p>
+    </div>
+
 </body>
+
 </html>

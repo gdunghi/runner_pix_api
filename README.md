@@ -21,6 +21,8 @@ cd project
 ```
 ```
 virtualenv venv
+OR
+virtualenv -p python3 envname
 ```
 
 ## Boost Python
