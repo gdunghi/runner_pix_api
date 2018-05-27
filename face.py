@@ -11,6 +11,7 @@ import threading
 from active_pool import ActivePool
 import logging
 from multiprocessing import Pool
+import base64
 
 class Face:
     def __init__(self, app):
@@ -134,6 +135,17 @@ class Face:
                 matched_images.append(face_val.filename)
             
         if(len(matched_images)>0):
-            return matched_images
+            return self.convert_base64_image(matched_images)
             
         return None
+
+    def convert_base64_image(self,images):
+        base64_images = []
+        trained_path = path.join(self.storage, 'trained')
+        for image in images:
+            with open(path.join(trained_path,image), "rb") as image_file:
+                encoded_string = base64.b64encode(image_file.read())
+                base64_images.append(encoded_string.decode('utf-8'))
+
+
+        return base64_images

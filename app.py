@@ -167,7 +167,7 @@ def recognize():
             file.save(file_path)
 
             matched_images = app.face.recognize_from_db(filename)
-            print("matched_images",matched_images)
+            # print("matched_images",matched_images)
             if len(matched_images) > 0:
                 #images = []
                 # for image in matched_images:

@@ -190,7 +190,7 @@ $(document).ready(function () {
 });
 
 function onSearch() {
-    var results = document.getElementById('results');
+    var results = document.getElementById('gallery');
     results.innerHTML = "";
     var recog_form_data = new FormData();
     $('#loading').show();
@@ -198,19 +198,35 @@ function onSearch() {
 
     axios.post('/api/recognize', recog_form_data).then(function (response) {
 
-        console.log("We found a user matched with your face image is", response.data);
+        // console.log("We found a user matched with your face image is", response.data);
 
         results.innerHTML = response.data.map(filename => {
-            return `<div class="gallery">
-            <a target="_blank" href="${filename}">
-                <img src="static/trained/${filename}" alt="${filename}" width="300" height="200">
-            </a>
-            <div class="desc"></div>
-            </div>`;
+            // return `<div class="gallery">
+            // <a target="_blank" href="${filename}">
+            //     <img src="static/trained/${filename}" alt="${filename}" width="300" height="200">
+            // </a>
+            // <div class="desc"></div>
+            // </div>`;
+
+            // return `<div class="gallery">
+            // <a target="_blank" href="${filename}">
+            //     <img src="data:image/jpeg;base64,${filename}" alt="${filename}" width="300" height="200">
+            // </a>
+            // <div class="desc"></div>
+            // </div>`;
+
+            return `<a href="#">
+            <img src="data:image/jpeg;base64,${filename}"  height="200"
+                 data-image="data:image/jpeg;base64,${filename}"
+                 data-description="This is a Lemon Slice">
+            </a>`;
+
+            
         }).join('');
 
         recognize_data = { file: null };
         update();
+        // jQuery("#gallery").unitegallery();
         $('#loading').hide();
     }).catch(function (err) {
         message = { type: 'error', message: _.get(err, 'response.data.error.message', 'Unknown error') };
