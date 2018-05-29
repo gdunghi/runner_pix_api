@@ -1,20 +1,33 @@
-from multiprocessing import Pool
+from PIL import Image
+import face_recognition
+from datetime import datetime
 
-import time
+# Load the jpg file into a numpy array
+image = face_recognition.load_image_file("storage/trained/DSCF2480.jpg")
 
-work = (["A", 5], ["B", 2], ["C", 1], ["D", 3])
+# Find all the faces in the image using a pre-trained convolutional neural network.
+# This method is more accurate than the default HOG model, but it's slower
+# unless you have an nvidia GPU and dlib compiled with CUDA extensions. But if you do,
+# this will use GPU acceleration and perform well.
+# See also: find_faces_in_picture.py
+
+print("start face_encodings .. ", datetime.now())
+face_locations = face_recognition.face_locations(image, number_of_times_to_upsample=0, model="cnn")
+print("face_locations",face_locations)
+
+face_image_encoding = face_recognition.face_encodings(image,face_locations,100)
+print("end face_encodings .. ", datetime.now())
+
+print("I found {} face(s) in this photograph.".format(len(face_locations)))
 
 
-def work_log(work_data):
-    print(" Process %s waiting %s seconds" % (work_data[0], work_data[1]))
-    time.sleep(int(work_data[1]))
-    print(" Process %s Finished." % work_data[0])
+for face_location in face_locations:
 
+    # Print the location of each face in this image
+    top, right, bottom, left = face_location
+    print("A face is located at pixel location Top: {}, Left: {}, Bottom: {}, Right: {}".format(top, left, bottom, right))
 
-def pool_handler():
-    p = Pool(4)
-    p.map(work_log, work)
-
-
-if __name__ == '__main__':
-    pool_handler()
+    # You can access the actual face itself like this:
+    face_image = image[top:bottom, left:right]
+    pil_image = Image.fromarray(face_image)
+    pil_image.show()

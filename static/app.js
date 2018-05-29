@@ -202,8 +202,8 @@ function onSearch() {
 
         results.innerHTML = response.data.map(filename => {
             // return `<div class="gallery">
-            // <a target="_blank" href="${filename}">
-            //     <img src="static/trained/${filename}" alt="${filename}" width="300" height="200">
+            // <a target="_blank" href="http://localhost:5000/api/get_image/${filename}">
+            //     <img src="static/thumbnail/${filename}"  width="300" height="200">
             // </a>
             // <div class="desc"></div>
             // </div>`;
@@ -215,10 +215,16 @@ function onSearch() {
             // <div class="desc"></div>
             // </div>`;
 
-            return `<a href="#">
-            <img src="data:image/jpeg;base64,${filename}"  height="200"
-                 data-image="data:image/jpeg;base64,${filename}"
-                 data-description="This is a Lemon Slice">
+            // return `<a href="#">
+            // <img src="data:image/jpeg;base64,${filename}"  height="200"
+            //      data-image="data:image/jpeg;base64,${filename}"
+            //      data-description="This is a Lemon Slice">
+            // </a>`;
+
+            return `<a href="http://localhost:5000/api/get_image/${filename}">
+            <img src="static/thumbnail/${filename}"
+                 data-image="static/thumbnail/${filename}"
+                 data-description="">
             </a>`;
 
             

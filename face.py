@@ -71,9 +71,12 @@ class Face:
     def execute_process_training(self,filename):
         print("Processing... ",filename)
         face_image = face_recognition.load_image_file(self.load_train_file_by_name(filename))
+
+        face_locations = face_recognition.face_locations(face_image, number_of_times_to_upsample=0, model="cnn")
+        
         if (len(face_image) > 0):
             print("start face_encodings ..",filename," ", datetime.now())
-            face_image_encoding = face_recognition.face_encodings(face_image)
+            face_image_encoding = face_recognition.face_encodings(face_image,face_locations,100)
             print("end face_encodings ..",filename," ", datetime.now())
             
             if (len(face_image_encoding) > 0):
@@ -96,8 +99,11 @@ class Face:
         # pool = ActivePool()
         # s = threading.Semaphore(6)
 
-        p = Pool(4)
-        p.map(self.execute_process_training, self.load_train_all())
+        # p = Pool(4)
+        # p.map(self.execute_process_training, self.load_train_all())
+        for filename in self.load_train_all():
+            if filename.endswith(".jpg"):
+                self.execute_process_training(filename)
            
     
     def train_image(self, image_path, filename):
@@ -111,32 +117,33 @@ class Face:
                 return self.get_db().faces.insert({"val": face_image_encoding[0].tolist(), "filename": filename})
 
     def recognize_from_db(self, unknown_filename):
-        print("start load img", datetime.now())
         unknown_image = face_recognition.load_image_file(self.load_unknown_file_by_name(unknown_filename))
-        print("end load img", datetime.now())
+        face_locations = face_recognition.face_locations(unknown_image, number_of_times_to_upsample=0, model="cnn")
         print("start  face_encodings img", datetime.now())
-        unknown_encoding_image = face_recognition.face_encodings(unknown_image)[0]
+        unknown_encoding_image = face_recognition.face_encodings(unknown_image,face_locations,100)
         print("end  face_encodings img", datetime.now())
 
-        print("start  get  faces ", datetime.now())
-        matched_images = []
+        if len(unknown_encoding_image) > 0:
+            print("start  get  faces ", datetime.now())
+            matched_images = []
+            for face in unknown_encoding_image:
+                for post in self.get_db().faces.find():
+                    face_val = Objectview(post)
+                    print("start  compare img", datetime.now())
+                    print("compare with img", face_val.filename)
+                    
 
-        for post in self.get_db().faces.find():
-            face_val = Objectview(post)
-            print("start  compare img", datetime.now())
-            print("compare with img", face_val.filename)
-            
+                    results = face_recognition.compare_faces([np.asarray(face_val.val)], face)
+                    print("end  compare img", datetime.now())
 
-            results = face_recognition.compare_faces([np.asarray(face_val.val)], unknown_encoding_image)
-            print("end  compare img", datetime.now())
-
-            print("results", results, " ", face_val.filename)
-            if (results[0] == True):
-                matched_images.append(face_val.filename)
-            
-        if(len(matched_images)>0):
-            return self.convert_base64_image(matched_images)
-            
+                    print("results", results, " ", face_val.filename)
+                    if (results[0] == True):
+                        matched_images.append(face_val.filename)
+                    
+            if(len(matched_images)>0):
+                # return self.convert_base64_image(matched_images)
+                return matched_images
+                
         return None
 
     def convert_base64_image(self,images):

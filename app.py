@@ -4,6 +4,7 @@ from os import path, getcwd
 import time
 from db import Database
 from face import Face
+from flask import send_file
 
 app = Flask(__name__)
 
@@ -163,7 +164,9 @@ def recognize():
 
             filename = secure_filename(file.filename)
             unknown_storage = path.join(app.config["storage"], 'unknown')
+            
             file_path = path.join(unknown_storage, filename)
+            print(file_path)
             file.save(file_path)
 
             matched_images = app.face.recognize_from_db(filename)
@@ -183,6 +186,16 @@ def recognize():
 
                 return error_handle("Sorry we can not found any people matched with your face image, try another image")
 
+@app.route('/api/get_image/<filename>')
+def get_image(filename):
+    if(filename != ""):
+        return send_file("static/thumbnail/"+filename, mimetype='image/gif')
+    
+
+    return error_handle("image not found")
+
+
+   
 
 # Run the app
 app.run()
